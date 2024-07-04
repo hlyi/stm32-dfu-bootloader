@@ -100,6 +100,12 @@ void (*usb_complete_cb)(struct usb_setup_data *req) = 0;
 
 void usb_init() {
 	rcc_periph_enable(RCC_USB);
+
+#ifdef CH32F10X
+	for ( int i=0;i< 8;i++) *USB_EP_REG(i) &= 0x0f0f;
+	SET_REG(USB_ISTR_REG, 0xFF);
+#endif
+
 	SET_REG(USB_CNTR_REG, 0);
 	SET_REG(USB_BTABLE_REG, 0);
 	SET_REG(USB_ISTR_REG, 0);

@@ -512,6 +512,7 @@ int main(void) {
 		__asm__("nop");
 
 	get_dev_unique_id(serial_no);
+	RCC_APB2ENR |= 1;	//enable alternative function clock for USB
 	usb_init();
 
 	while (1) {
