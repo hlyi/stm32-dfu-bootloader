@@ -17,6 +17,15 @@
 #define FLASH_CR      (*(volatile uint32_t*)0x40022010U)
 #define FLASH_AR      (*(volatile uint32_t*)0x40022014U)
 
+#ifdef CH32F10X
+#define FLASH_CR_PAGE_PROGRAM	(1<<16)
+#define FLASH_CR_PAGE_ERASE	(1<<17)
+#define FLASH_CR_BUF_LOAD	(1<<18)
+#define FLASH_CR_BUF_RST	(1<<19)
+#define FLASH_MODEKEYP (*(volatile uint32_t*)0x40022024U)
+#define FLASH_PGADDR (*(volatile uint32_t*)0x40022034U)
+#endif
+
 static void _flash_lock() {
 	// Clear the unlock state.
 	FLASH_CR |= FLASH_CR_LOCK;
@@ -28,6 +37,10 @@ static void _flash_unlock() {
 		// Authorize the FPEC access.
 		FLASH_KEYR = 0x45670123U;
 		FLASH_KEYR = 0xcdef89abU;
+#ifdef CH32F10X
+		FLASH_MODEKEYP = 0x45670123U;
+		FLASH_MODEKEYP = 0xcdef89abU;
+#endif
 	}
 }
 
@@ -60,6 +73,44 @@ static int _flash_page_is_erased(uint32_t addr) {
 static void _flash_program_buffer(uint32_t address, uint16_t *data, unsigned len) {
 	_flash_wait_for_last_operation();
 
+#ifdef CH32F10X
+	uint32_t * dst_ptr = (uint32_t *) address;
+	uint32_t * src_ptr = (uint32_t *) data;
+	uint32_t last_word = ((len+3) >> 2)-1;			// assume word aligned
+	if ( (address & 0x7f )!= 0 ) return;			// address need 128-Byte aligned
+	for ( uint32_t i = 0; i <= last_word; i ++ ) {
+		// at page boundary
+		if ( ( i & 0x1f) == 0 ) {
+			// program page
+			FLASH_CR |= FLASH_CR_PAGE_PROGRAM;
+			FLASH_CR |= FLASH_CR_BUF_RST;			// reset page buffer
+			_flash_wait_for_last_operation();
+			FLASH_CR &= ~FLASH_CR_PAGE_PROGRAM;
+		}
+		if ( ( i & 3 ) == 0 ){
+			FLASH_CR |= FLASH_CR_PAGE_PROGRAM;
+		}
+		*dst_ptr = *src_ptr++;
+		if ( ( (i & 3 ) == 3) || (i == last_word) ) {
+			uint32_t pg_adr = ((uint32_t)dst_ptr) & (~0x0fUL);
+
+			FLASH_CR |= FLASH_CR_BUF_LOAD;			// load page buffer
+			_flash_wait_for_last_operation();
+			FLASH_CR &= ~FLASH_CR_PAGE_PROGRAM;
+			FLASH_PGADDR = *(volatile uint32_t*)(pg_adr ^ 0x00000100);    // taken from example
+			if ( ( (i&0x1f) == 0x1f) || (i==last_word) ){
+				pg_adr = ((uint32_t)dst_ptr) & (~0x7f);
+				FLASH_CR |= FLASH_CR_PAGE_PROGRAM;
+				FLASH_AR = pg_adr;
+				FLASH_CR |= FLASH_CR_STRT;
+				_flash_wait_for_last_operation();
+				FLASH_CR &= ~FLASH_CR_PAGE_PROGRAM;
+				FLASH_PGADDR = *(volatile uint32_t*)(pg_adr^ 0x00000100);    // taken from example
+			}
+		}
+		dst_ptr++;
+	}
+#else
 	// Enable programming
 	FLASH_CR |= FLASH_CR_PG;
 
@@ -71,6 +122,7 @@ static void _flash_program_buffer(uint32_t address, uint16_t *data, unsigned len
 
 	// Disable programming
 	FLASH_CR &= ~FLASH_CR_PG;
+#endif
 }
 
 #if defined(ENABLE_PROTECTIONS) || defined(ENABLE_WRITEPROT)
