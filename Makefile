@@ -10,23 +10,27 @@ FLASH_BASE_ADDR = 0x08000000
 FLASH_BOOTLDR_PAYLOAD_SIZE_KB = $(shell echo $$(($(FLASH_SIZE) - $(BOOTLOADER_SIZE))))
 
 # Default config
-CONFIG ?= -DWINUSB_SUPPORT -DENABLE_CHECKSUM -DENABLE_WATCHDOG=20
+#CONFIG ?= -DWINUSB_SUPPORT -DENABLE_CHECKSUM -DENABLE_WATCHDOG=20
+CONFIG ?= -DWINUSB_SUPPORT -DENABLE_GPIO_DFU_BOOT -DGPIO_DFU_BOOT_PORT=GPIOB -DGPIO_DFU_BOOT_PIN=2 -DGPIO_DFU_BOOT_PIN_NOPD -DCH32F10X -DENABLE_DFU_UPLOAD -DUSE_BACKUP_REGS
 # For GPIO DFU booting:  -DENABLE_GPIO_DFU_BOOT -DGPIO_DFU_BOOT_PORT=GPIOB -DGPIO_DFU_BOOT_PIN=2
 # To protect bootloader from accidental writes: -DENABLE_WRITEPROT
 # To protect your payload from DFU reads: -DENABLE_SAFEWRITE
+# To pull up resistor on some bluepill board is too weak, to not enable internal pulldown resistor: -DGPIO_DFU_BOOT_PIN_NOPD
+# To support additional USB initialization code for CH32F10X: -DCH32F10X
+# To use backup register intead of RAM for boot signature: -DUSE_BACKUP_REGS
 
 # Can be overriden with custom VID/PID
 USB_VID ?= 0xdead
 USB_PID ?= 0xca5d
 
-CFLAGS = -Os -ggdb -std=c11 -Wall -pedantic -Werror \
+CFLAGS = -Os -g3 -std=c11 -Wall -pedantic -Werror \
 	-ffunction-sections -fdata-sections -Wno-overlength-strings \
 	-mcpu=cortex-m3 -mthumb -DSTM32F1 -fno-builtin-memcpy  \
 	-fno-builtin-strlen -pedantic -DVERSION=\"$(GIT_VERSION)\" \
 	-DUSB_PID=$(USB_PID) -DUSB_VID=$(USB_VID) \
 	-flto $(CONFIG)
 
-LDFLAGS = -ggdb -ffunction-sections -fdata-sections \
+LDFLAGS = -g3 -ffunction-sections -fdata-sections \
 	-Wl,-Tstm32f103.ld -nostartfiles -lc -lnosys \
 	-mthumb -mcpu=cortex-m3 -Wl,-gc-sections -flto \
 	-Wl,--print-memory-usage
