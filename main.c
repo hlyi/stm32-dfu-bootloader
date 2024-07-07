@@ -286,6 +286,7 @@ inline static void gpio_set_mode(uint32_t gpiodev, uint16_t gpion, uint8_t mode)
 }
 
 #define gpio_set_output(a,b)    gpio_set_mode(a,b,0x2)
+#define gpio_set_output_od(a,b) gpio_set_mode(a,b,0x6)
 #define gpio_set_input(a,b)     gpio_set_mode(a,b,0x4)
 #define gpio_set_input_pp(a,b)  gpio_set_mode(a,b,0x8)
 
@@ -351,6 +352,13 @@ int force_dfu_gpio() {
 #define RCC_CSR_PORRSTF     (1 << 27)
 #define RCC_CSR_PINRSTF     (1 << 26)
 #define RCC_CSR_RMVF        (1 << 24)
+
+#define STK_CSR        (*(volatile uint32_t *) 0xe000e010)
+#define STK_RVR        (*(volatile uint32_t *) 0xe000e014)
+#define STK_CSR_COUNTFLAG	(1<<16)
+#define STK_CSR_ENABLE		(1<<0)
+#define STK_CSR_CLKSOURCE	(1<<2)
+
 
 #ifdef ENABLE_PINRST_DFU_BOOT
 static inline int reset_due_to_pin() {
@@ -499,6 +507,17 @@ int main(void) {
 
 	clock_setup_in_hse_8mhz_out_72mhz();
 
+	/*setup systick*/
+#ifdef	GPIO_LED_STATUS_PORT
+	uint32_t	led_status = 1;
+	uint32_t	led_tick_cnt = 0;
+	rcc_gpio_enable(GPIO_LED_STATUS_PORT);
+	gpio_set_output_od(GPIO_LED_STATUS_PORT, GPIO_LED_STATUS_PIN);
+	gpio_clear(GPIO_LED_STATUS_PORT, GPIO_LED_STATUS_PIN);	/* turn on status LED */
+	STK_RVR = 7199999UL;		/* set tick to 100ms */
+	STK_CSR = STK_CSR_CLKSOURCE | STK_CSR_ENABLE;
+#endif
+
 	/* Disable USB peripheral as it overrides GPIO settings */
 	*USB_CNTR_REG = USB_CNTR_PWDN;
 	/*
@@ -518,6 +537,35 @@ int main(void) {
 	while (1) {
 		// Poll based approach
 		do_usb_poll();
+#ifdef GPIO_LED_STATUS_PORT
+		if ( STK_CSR & STK_CSR_COUNTFLAG) {
+			uint32_t	status_limit;
+			led_tick_cnt ++ ;
+			switch ( usbdfu_state ) {
+			case STATE_DFU_IDLE:
+			case STATE_APP_IDLE:
+			case STATE_APP_DETACH:
+				status_limit = 10;
+				break;
+			case STATE_DFU_ERROR:
+				status_limit = 1 ;
+				break;
+			default:
+				status_limit = 2;
+				break;
+			}
+
+			if ( led_tick_cnt >= status_limit ) led_tick_cnt = 0;
+			if (led_tick_cnt == 0 ){
+				led_status = led_status ? 0 : 1;
+				if ( led_status ) {
+					gpio_clear(GPIO_LED_STATUS_PORT, GPIO_LED_STATUS_PIN);
+				}else{
+					gpio_set(GPIO_LED_STATUS_PORT, GPIO_LED_STATUS_PIN);
+				}
+			}
+		}
+#endif
 	}
 	__builtin_unreachable();
 }
