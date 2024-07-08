@@ -91,7 +91,11 @@ static uint8_t usbdfu_getstatus(uint32_t *bwPollTimeout) {
 	switch (usbdfu_state) {
 	case STATE_DFU_DNLOAD_SYNC:
 		usbdfu_state = STATE_DFU_DNBUSY;
+#ifdef ENABLE_SHORT_POLL
+		*bwPollTimeout = 10;
+#else
 		*bwPollTimeout = 100;
+#endif
 		return DFU_STATUS_OK;
 	case STATE_DFU_MANIFEST_SYNC:
 		// Device will reset when read is complete.
@@ -506,7 +510,9 @@ int main(void) {
 	}
 
 	clock_setup_in_hse_8mhz_out_72mhz();
-
+#ifdef USE_BACKUP_REGS
+	clear_reboot_flags();
+#endif
 	/*setup systick*/
 #ifdef	ENABLE_LED_STATUS
 	uint32_t	led_status = 1;
@@ -517,6 +523,7 @@ int main(void) {
 	STK_RVR = 7199999UL;		/* set tick to 100ms */
 	STK_CSR = STK_CSR_CLKSOURCE | STK_CSR_ENABLE;
 #endif
+
 
 	/* Disable USB peripheral as it overrides GPIO settings */
 	*USB_CNTR_REG = USB_CNTR_PWDN;
