@@ -7,6 +7,8 @@ works for similar devices). It enables user to flash devices over USB
 with any arbitrary payloads. It features some minimal payload checking
 to ensure use apps are valid before booting them.
 
+**_This branch has a few enchancements_**: _support status LED and fast flash programming for CH32F103X chip._
+
 Features
 --------
 
@@ -17,6 +19,8 @@ Features
 * Total wipe on DFU downloads (avoid partial FW updates).
 * Optional upload enable (to prevent firmware/data reads).
 * Firmware checksum checking.
+* **_Status LED_**
+* **_Fast Flash programming for CH32F10x (such as CH32F103)_**
 
 
 Reboot into bootloader
@@ -91,9 +95,16 @@ Config flags
 * ENABLE_GPIO_DFU_BOOT: Enables DFU mode on pulling up a certain GPIO.
   You need to define GPIO_DFU_BOOT_PORT and GPIO_DFU_BOOT_PIN to either
   GPIOA, GPIOB, .. GPIOE and 0 .. 15 to indicate which port to enable and
-  what pin to read from.
+  what pin to read from. **_When GPIO_DFU_BOOT_PIN_NOPD is defined, the pin doesn't enable internal pulldown. Some bluepill boards have a very weak external resistor for pull up/down, internal pulldown can override the external setting._**
 * ENABLE_PINRST_DFU_BOOT: Enables DFU mode when a reset from the NRST pin
   occurs.
+* **_ENABLE_LED_STATUS_**: Enable Status LED
+  * GPIO_LED_STATUS_PORT and GPIO_LED_STATUS_PIN have to be specified for the LED status pin. Assuming that the status LED is driven through open-drain type.
+  * Slow blinking when DFU is idle, Fast blinking when upload/download is in progress, fastest blinking when error
+* **_ENABLE_CH32F10X_**: Support CH32F10X, such as CH32F103, which is used in some blue-pill clones
+  * Support CH32F10X fast flash programming. should be more than 5x faster
+  * Add additional USB initialization code to avoid enumeration problem when cold boots.
+* **_USE_BACKUP_REGS_**: Use backup registers instead of using signature pattern at the end of SRAM. 
 
 By default all flags are set except for DFU upload, so it's most secure.
 
