@@ -17,7 +17,7 @@
 #define FLASH_CR      (*(volatile uint32_t*)0x40022010U)
 #define FLASH_AR      (*(volatile uint32_t*)0x40022014U)
 
-#ifdef CH32F10X
+#ifdef ENABLE_CH32F10X
 #define FLASH_CR_PAGE_PROGRAM	(1<<16)
 #define FLASH_CR_PAGE_ERASE	(1<<17)
 #define FLASH_CR_BUF_LOAD	(1<<18)
@@ -37,7 +37,7 @@ static void _flash_unlock() {
 		// Authorize the FPEC access.
 		FLASH_KEYR = 0x45670123U;
 		FLASH_KEYR = 0xcdef89abU;
-#ifdef CH32F10X
+#ifdef ENABLE_CH32F10X
 		FLASH_MODEKEYP = 0x45670123U;
 		FLASH_MODEKEYP = 0xcdef89abU;
 #endif
@@ -73,7 +73,7 @@ static int _flash_page_is_erased(uint32_t addr) {
 static void _flash_program_buffer(uint32_t address, uint16_t *data, unsigned len) {
 	_flash_wait_for_last_operation();
 
-#ifdef CH32F10X
+#ifdef ENABLE_CH32F10X
 	uint32_t * dst_ptr = (uint32_t *) address;
 	uint32_t * src_ptr = (uint32_t *) data;
 	uint32_t last_word = ((len+3) >> 2)-1;			// assume word aligned
