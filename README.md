@@ -102,8 +102,9 @@ Config flags
   * GPIO_LED_STATUS_PORT and GPIO_LED_STATUS_PIN have to be specified for the LED status pin. Assuming that the status LED is driven through open-drain type.
   * Slow blinking when DFU is idle, Fast blinking when upload/download is in progress, fastest blinking when error
 * **_ENABLE_CH32F103_**: Support CH32F103, such as CH32F103C8, which is used in some blue-pill clones
-  * Support CH32F103 fast flash programming. should be more than 5x faster
+  * Support CH32F103 fast flash programming. should be more than 10x faster
   * Add additional USB initialization code to avoid enumeration problem when cold boots.
+* **_ENABLE_SHORT_POLL_**: Reduce poll timeout value, it can speed up download speed significantly on some devices.
 * **_USE_BACKUP_REGS_**: Use backup registers instead of using signature pattern at the end of SRAM. 
 
 By default all flags are set except for DFU upload, so it's most secure.
