@@ -101,7 +101,7 @@ void (*usb_complete_cb)(struct usb_setup_data *req) = 0;
 void usb_init() {
 	rcc_periph_enable(RCC_USB);
 
-#ifdef ENABLE_CH32F10X
+#ifdef ENABLE_CH32F103
 	for ( int i=0;i< 8;i++) *USB_EP_REG(i) &= 0x0f0f;
 	SET_REG(USB_ISTR_REG, 0xFF);
 #endif
