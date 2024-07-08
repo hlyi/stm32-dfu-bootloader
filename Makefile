@@ -11,7 +11,7 @@ FLASH_BOOTLDR_PAYLOAD_SIZE_KB = $(shell echo $$(($(FLASH_SIZE) - $(BOOTLOADER_SI
 
 # Default config
 #CONFIG ?= -DWINUSB_SUPPORT -DENABLE_CHECKSUM -DENABLE_WATCHDOG=20
-CONFIG ?= -DWINUSB_SUPPORT -DENABLE_GPIO_DFU_BOOT -DGPIO_DFU_BOOT_PORT=GPIOB -DGPIO_DFU_BOOT_PIN=2 -DGPIO_DFU_BOOT_PIN_NOPD -DCH32F10X -DENABLE_DFU_UPLOAD -DUSE_BACKUP_REGS -DGPIO_LED_STATUS_PORT=GPIOC -DGPIO_LED_STATUS_PIN=13
+CONFIG ?= -DWINUSB_SUPPORT -DENABLE_GPIO_DFU_BOOT -DGPIO_DFU_BOOT_PORT=GPIOB -DGPIO_DFU_BOOT_PIN=2 -DGPIO_DFU_BOOT_PIN_NOPD -DCH32F10X -DENABLE_DFU_UPLOAD -DUSE_BACKUP_REGS -DENABLE_LED_STATUS -DGPIO_LED_STATUS_PORT=GPIOC -DGPIO_LED_STATUS_PIN=13
 
 # For GPIO DFU booting:  -DENABLE_GPIO_DFU_BOOT -DGPIO_DFU_BOOT_PORT=GPIOB -DGPIO_DFU_BOOT_PIN=2
 # To protect bootloader from accidental writes: -DENABLE_WRITEPROT
@@ -19,7 +19,7 @@ CONFIG ?= -DWINUSB_SUPPORT -DENABLE_GPIO_DFU_BOOT -DGPIO_DFU_BOOT_PORT=GPIOB -DG
 # To pull up resistor on some bluepill board is too weak, to not enable internal pulldown resistor: -DGPIO_DFU_BOOT_PIN_NOPD
 # To support CH32F10X (requires additional USB initialization and fast flash programming, require addtional 168bytes): -DCH32F10X
 # To use backup register intead of RAM for boot signature (requires additional 36 bytes): -DUSE_BACKUP_REGS
-# to enable status LED, define port and pin (require additional 104 bytes): -DGPIO_LED_STATUS_PORT=GPIOC -DGPIO_LED_STATUS_PIN=13
+# to enable status LED, define port and pin (require additional 104 bytes): -DENABLE_LED_STATUS -DGPIO_LED_STATUS_PORT=GPIOC -DGPIO_LED_STATUS_PIN=13
 
 # Can be overriden with custom VID/PID
 USB_VID ?= 0xdead

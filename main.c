@@ -508,7 +508,7 @@ int main(void) {
 	clock_setup_in_hse_8mhz_out_72mhz();
 
 	/*setup systick*/
-#ifdef	GPIO_LED_STATUS_PORT
+#ifdef	ENABLE_LED_STATUS
 	uint32_t	led_status = 1;
 	uint32_t	led_tick_cnt = 0;
 	rcc_gpio_enable(GPIO_LED_STATUS_PORT);
@@ -537,7 +537,7 @@ int main(void) {
 	while (1) {
 		// Poll based approach
 		do_usb_poll();
-#ifdef GPIO_LED_STATUS_PORT
+#ifdef ENABLE_LED_STATUS
 		if ( STK_CSR & STK_CSR_COUNTFLAG) {
 			uint32_t	status_limit;
 			led_tick_cnt ++ ;
