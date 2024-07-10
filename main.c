@@ -540,9 +540,11 @@ int main(void) {
 
 	get_dev_unique_id(serial_no);
 	RCC_APB2ENR |= 1;	//enable alternative function clock for USB
-#ifdef ENABLE_USB_INT_PULLUP
+
+#if defined (ENABLE_CH32F103) && defined(ENABLE_USB_INT_PULLUP)
 	USB_CTRL_R8 |= 0x20;
 #endif
+
 	usb_init();
 
 	while (1) {
