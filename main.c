@@ -363,6 +363,7 @@ int force_dfu_gpio() {
 #define STK_CSR_ENABLE		(1<<0)
 #define STK_CSR_CLKSOURCE	(1<<2)
 
+#define USB_CTRL_R8	(*(volatile uint8_t *) 0x40023400U)
 
 #ifdef ENABLE_PINRST_DFU_BOOT
 static inline int reset_due_to_pin() {
@@ -539,6 +540,9 @@ int main(void) {
 
 	get_dev_unique_id(serial_no);
 	RCC_APB2ENR |= 1;	//enable alternative function clock for USB
+#ifdef ENABLE_USB_INT_PULLUP
+	USB_CTRL_R8 |= 0x20;
+#endif
 	usb_init();
 
 	while (1) {
