@@ -105,6 +105,7 @@ Config flags
   * Support CH32F103 fast flash programming. should be more than 10x faster
   * Add additional USB initialization code to avoid enumeration problem when cold boots.
 * **_ENABLE_SHORT_POLL_**: Reduce poll timeout value, it can speed up download speed significantly on some devices.
+* **_ENABLE_USB_INT_PULLUP_**: Enable internal 1.5k pullup resistor for USB. Only valid for CH32F103
 * **_USE_BACKUP_REGS_**: Use backup registers instead of using signature pattern at the end of SRAM. 
 
 By default all flags are set except for DFU upload, so it's most secure.
