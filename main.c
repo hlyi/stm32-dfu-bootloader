@@ -230,11 +230,10 @@ static void usbdfu_getstatus_complete(struct usb_setup_data *req) {
 //#if defined (ENABLE_CH32F103) && defined(ENABLE_USB_INT_PULLUP)
 		// disable usb pullup
 //#endif
-		USB_CTRL_R8 = 0x6;
+		// USB_CTRL_R8 = 0x6;
 		usb_reenumerate_hack();
 
 		// Perform reset
-		clear_reboot_flags();
 		_full_system_reset();
 		return;
 	default:
@@ -422,11 +421,11 @@ static void clock_setup_in_hse_8mhz_out_72mhz() {
 	FLASH_ACR = (FLASH_ACR & ~FLASH_ACR_LATENCY) | FLASH_ACR_LATENCY_2WS;
 
 	/* Enable PLL oscillator and wait for it to stabilize. */
-    RCC_CR |= RCC_CR_PLLON;
+	RCC_CR |= RCC_CR_PLLON;
 	while (!(RCC_CR & RCC_CR_PLLRDY));
 
 	// Select PLL as SYSCLK source.
-    RCC_CFGR = (RCC_CFGR & ~RCC_CFGR_SW) | (RCC_CFGR_SW_SYSCLKSEL_PLLCLK << RCC_CFGR_SW_SHIFT);
+	RCC_CFGR = (RCC_CFGR & ~RCC_CFGR_SW) | (RCC_CFGR_SW_SYSCLKSEL_PLLCLK << RCC_CFGR_SW_SHIFT);
 }
 
 bool validate_checksum(const uint32_t * const image, unsigned size) {
@@ -511,6 +510,9 @@ int main(void) {
 
 	RCC_CSR |= RCC_CSR_RMVF;
 
+	// Clear flags
+	clear_reboot_flags();
+
 	if (!go_dfu &&
 	   (*(volatile uint32_t *)APP_ADDRESS & 0x2FFE0000) == 0x20000000) {
 
@@ -518,8 +520,6 @@ int main(void) {
 		if (validate_checksum(base_addr, imagesize))
 		#endif
 		{
-			// Clear flags
-			clear_reboot_flags();
 			#ifdef ENABLE_WATCHDOG
 			// Enable the watchdog
 			enable_iwdg(4096 * ENABLE_WATCHDOG / 26);
@@ -536,8 +536,6 @@ int main(void) {
 	}
 
 	clock_setup_in_hse_8mhz_out_72mhz();
-
-	clear_reboot_flags();
 
 	/*setup systick*/
 #ifdef	ENABLE_LED_STATUS
