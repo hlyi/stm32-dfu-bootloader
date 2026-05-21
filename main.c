@@ -162,7 +162,7 @@ static void usb_reenumerate_hack ()
 {
 
 	/* Disable USB peripheral as it overrides GPIO settings */
-	*USB_CNTR_REG = USB_CNTR_PWDN;
+	usb_reset();
 	/*
 	 * Vile hack to reenumerate, physically _drag_ d+ low.
 	 * (need at least 2.5us to trigger USB disconnect)
@@ -227,12 +227,7 @@ static void usbdfu_getstatus_complete(struct usb_setup_data *req) {
 		return;
 	case STATE_DFU_MANIFEST:
 
-//#if defined (ENABLE_CH32F103) && defined(ENABLE_USB_INT_PULLUP)
-		// disable usb pullup
-//#endif
-		// USB_CTRL_R8 = 0x6;
 		usb_reenumerate_hack();
-
 		// Perform reset
 		_full_system_reset();
 		return;

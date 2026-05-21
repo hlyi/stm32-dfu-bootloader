@@ -93,10 +93,17 @@ struct usb_setup_data usb_req;
 uint8_t usb_force_nak[8] = {0};
 void (*usb_complete_cb)(struct usb_setup_data *req) = 0;
 
+#define RCC_APB1RSTR  (*(volatile uint32_t*)0x40021010U)
 #define RCC_APB1ENR  (*(volatile uint32_t*)0x4002101CU)
 #define RCC_USB   23
 
 #define rcc_periph_enable(pn) RCC_APB1ENR |= (1 << (pn));
+
+inline void usb_reset() {
+	RCC_APB1RSTR |= (1<<RCC_USB);
+	RCC_APB1RSTR &= ~(1<<RCC_USB);
+	RCC_APB1ENR &= ~(1<<RCC_USB);
+}
 
 void usb_init() {
 	rcc_periph_enable(RCC_USB);

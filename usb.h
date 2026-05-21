@@ -506,6 +506,5 @@ do {									\
 #define DFU_TRANSFER_SIZE 1024
 void usb_init();
 void do_usb_poll();
-
-
+void usb_reset();
 
